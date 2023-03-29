@@ -1,0 +1,24 @@
+{
+  "name": "aws-dynamo-api-with-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.165.0",
+    "aws-elasticsearch-js": "^1.0.3",
+    "aws-sdk": "^2.858.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "multer": "^1.4.5-lts.1",
+    "nodemon": "^2.0.19",
+    "uuid": "^9.0.0"
+  }
+}

@@ -1,5 +1,6 @@
 const express = require("express"); //import express
 const { v4: uuidv4 } = require("uuid");
+const { s3 } = require("../config/connection");
 const router = express.Router();
 
 const {
@@ -9,6 +10,7 @@ const {
   getQuestionById,
   getSearchResult,
   updateQuestion,
+  uploadImage,
 } = require("../controller/questioninfo");
 const { upload } = require("../utils/imageStorage");
 
@@ -46,32 +48,30 @@ router.get("/questionsans/:data", async (req, res) => {
   }
 });
 
-
 router.post("/questions", upload, async (req, res) => {
   const { question, answer, status, dateLog, secondary } = JSON.parse(
     req.body.data
   );
-
-  let imageLocation = "null";
-  if (req.file) {
-    imageLocation = "http://localhost:5000/profile/" + req.file.filename;
-    console.log(imageLocation);
-  }
-
   let id = uuidv4();
-  const qa = question.toLowerCase() + " " + answer.toLowerCase();
-  const data = {
-    question: question,
-    answer: answer,
-    questionId: id,
-    qa: qa,
-    status: status,
-    dateLog: dateLog,
-    secondary: secondary,
-    imageLocation: imageLocation,
-  };
+
   try {
-    const newQuestion = await addOrUpdateQuestion(data);
+    let imageLocation = "null";
+    if (req.file) {
+      uploadImage(req.file, id);
+    }
+
+    const qa = question.toLowerCase() + " " + answer.toLowerCase();
+    const qnavalue = {
+      question: question,
+      answer: answer,
+      questionId: id,
+      qa: qa,
+      status: status,
+      dateLog: dateLog,
+      secondary: secondary,
+      imageLocation: imageLocation,
+    };
+    const newQuestion = addOrUpdateQuestion(qnavalue);
     res.json(newQuestion);
   } catch (err) {
     console.error(err);
@@ -82,13 +82,12 @@ router.post("/questions", upload, async (req, res) => {
 router.put("/questions/:id", upload, async (req, res) => {
   const question = JSON.parse(req.body.data);
   let imageLocation = "null";
-  if (req.file) {
-    imageLocation = "http://localhost:5000/profile/" + req.file.filename;
-  } else {
-    imageLocation = question.imgLocation;
-  }
 
   const { id } = req.params;
+  if (req.file) {
+    uploadImage(req.file, id);
+  }
+
   question.id = id;
   try {
     const newQuestion = await updateQuestion(question, imageLocation);

@@ -1,7 +1,11 @@
 module.exports = {
-  // aws_table_name: "users",
   aws_local_config: {
-    //Provide details for local configuration
+    region: "ap-south-1",
+    endpoint: "http://localhost:8000",
+    credentials: {
+      accessKeyId: "fakeMyKeyId",
+      secretAccessKey: "fakeSecretAccessKey",
+    },
   },
   aws_remote_config: {
     accessKeyId: process.env.ACCESS_KEY_ID,

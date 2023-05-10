@@ -49,9 +49,15 @@ router.get("/questionsans/:data", async (req, res) => {
 });
 
 router.post("/questions", upload, async (req, res) => {
-  const { question, answer, status, dateLog, secondary } = JSON.parse(
-    req.body.data
-  );
+  const {
+    question,
+    answer,
+    status,
+    dateLog,
+    secondary,
+    createdBy,
+    authorRole,
+  } = JSON.parse(req.body.data);
   let id = uuidv4();
 
   try {
@@ -65,6 +71,8 @@ router.post("/questions", upload, async (req, res) => {
       question: question,
       answer: answer,
       questionId: id,
+      createdBy: createdBy,
+      authorRole: authorRole,
       qa: qa,
       status: status,
       dateLog: dateLog,

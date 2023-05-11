@@ -2,6 +2,7 @@ const express = require("express"); //import express
 const { v4: uuidv4 } = require("uuid");
 const { s3 } = require("../config/connection");
 const router = express.Router();
+const { dynamoClient } = require("../config/connection");
 
 const {
   addOrUpdateQuestion,
@@ -28,6 +29,7 @@ router.get("/questions/:id", async (req, res) => {
   const id = req.params.id;
   try {
     const question = await getQuestionById(id);
+    console.log(question);
     res.json(question);
   } catch (err) {
     console.error(err);
@@ -58,13 +60,34 @@ router.post("/questions", upload, async (req, res) => {
     createdBy,
     authorRole,
   } = JSON.parse(req.body.data);
-  let id = uuidv4();
+
+  // const { preview, data } = JSON.parse(req.body.image);
+  // console.log(preview);
+  console.log(req.files);
 
   try {
-    let imageLocation = "null";
-    if (req.file) {
-      uploadImage(req.file, id);
+    let imageLocation = [];
+    let id = uuidv4();
+    if (req.files) {
+      // uploadImage(req.file, id);
+      //is the id need to be unique for images?
+      req.files.map((file) => {
+        uploadImage(file, id);
+      });
     }
+    // console.log(imageLocation);
+    // const params = {
+    //   TableName: "QuestionAnswer",
+    //   Key: {
+    //     questionId: id,
+    //   },
+    //   UpdateExpression: "set imageLocation = :r",
+    //   ExpressionAttributeValues: {
+    //     ":r": imageLocation,
+    //   },
+    // };
+    // await dynamoClient.update(params).promise();
+
 
     const qa = question.toLowerCase() + " " + answer.toLowerCase();
     const qnavalue = {

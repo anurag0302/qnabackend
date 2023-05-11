@@ -69,6 +69,7 @@ const deleteQuestion = async (id) => {
   };
   return await dynamoClient.delete(params).promise();
 };
+
 const uploadImage = async (file, id) => {
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME, // bucket that we made earlier
@@ -83,18 +84,31 @@ const uploadImage = async (file, id) => {
       console.log(error);
       res.status(500).send({ err: error });
     } else {
-      console.log(data.Location);
+      // console.log(data.Location);
+      // imagesArray.push(data.Location);
+      // console.log(imagesArray);
+
       const params = {
-        TableName: TABLE_NAME,
+        TableName: "QuestionAnswer",
         Key: {
           questionId: id,
         },
-        UpdateExpression: "set imageLocation = :r",
+        UpdateExpression: "SET #listAttr = list_append(#listAttr, :newString)",
+        ExpressionAttributeNames: {
+          "#listAttr": "imageLocation",
+        },
         ExpressionAttributeValues: {
-          ":r": data.Location,
+          ":newString": [data.Location],
         },
       };
-      return await dynamoClient.update(params).promise();
+
+      dynamoClient.update(params, function (err, data) {
+        if (err) {
+          console.log("Error:", err);
+        } else {
+          console.log("Item updated successfully:", data);
+        }
+      });
     }
   });
 };

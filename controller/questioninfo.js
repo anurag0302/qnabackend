@@ -38,6 +38,9 @@ const addOrUpdateQuestion = async (question) => {
   return await dynamoClient.put(params).promise();
 };
 const updateQuestion = async (question, imageLocation) => {
+  // console.log("question",question);
+  // console.log("imageLoc",imageLocation);
+  console.log("last imageloc", question.secondary[0].imgdata);
   const params = {
     TableName: TABLE_NAME,
     Key: {
@@ -52,7 +55,7 @@ const updateQuestion = async (question, imageLocation) => {
         question.question.toLowerCase() + " " + question.answer.toLowerCase(),
       ":dt": question.dateLog,
       ":sc": question.secondary,
-      ":imgl": imageLocation,
+      ":imgl": [...imageLocation,...question.secondary[0].imgdata],
       ":cb": question.createdBy,
       ":ar": question.authorRole,
     },

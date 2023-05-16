@@ -29,7 +29,7 @@ router.get("/questions/:id", async (req, res) => {
   const id = req.params.id;
   try {
     const question = await getQuestionById(id);
-    console.log(question);
+    //console.log(question);
     res.json(question);
   } catch (err) {
     console.error(err);
@@ -63,7 +63,7 @@ router.post("/questions", upload, async (req, res) => {
 
   // const { preview, data } = JSON.parse(req.body.image);
   // console.log(preview);
-  console.log(req.files);
+  //console.log(req.files);
 
   try {
     let imageLocation = [];
@@ -102,6 +102,7 @@ router.post("/questions", upload, async (req, res) => {
       secondary: secondary,
       imageLocation: imageLocation,
     };
+    //console.log("addimageloc",qnavalue);
     const newQuestion = addOrUpdateQuestion(qnavalue);
     res.json(newQuestion);
   } catch (err) {
@@ -112,15 +113,24 @@ router.post("/questions", upload, async (req, res) => {
 
 router.put("/questions/:id", upload, async (req, res) => {
   const question = JSON.parse(req.body.data);
-  let imageLocation = "null";
-
+  let imageLocation = [];
+  //console.log("question",question);
   const { id } = req.params;
-  if (req.file) {
-    uploadImage(req.file, id);
+  // if (req.file) {
+  //   uploadImage(req.file, id);
+  // }
+
+  if (req.files) {
+    // uploadImage(req.file, id);
+    //is the id need to be unique for images?
+    req.files.map((file) => {
+      uploadImage(file, id);
+    });
   }
 
   question.id = id;
   try {
+    //console.log("imagelocation",question.imgLocation);
     const newQuestion = await updateQuestion(question, imageLocation);
     res.json(newQuestion);
   } catch (err) {

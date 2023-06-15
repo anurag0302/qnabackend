@@ -35,9 +35,11 @@ router.get("/userinfo/:id", async (req, res) => {
 
 router.post("/logininfo", async (req, res) => {
   const { id, password } = req.body;
+  //console.log(req.body);
   try {
     const newUser = await login(req.body);
-    if (newUser.Item.password === password) {
+    console.log(newUser);
+    if (newUser?.Item?.password === password) {
       const token = utils.generateToken(newUser.Item);
       // get basic user details
       const userObj = utils.getCleanUser(newUser.Item);
@@ -45,9 +47,11 @@ router.post("/logininfo", async (req, res) => {
       return res.json({ Item: userObj, token });
       //return res.json(newUser)
     } else {
-      res.status(500).json({ err: "Invalid cred Found" });
+      console.log("else");
+      res.status(401).json({ err: "Invalid cred Found" });
     }
   } catch (err) {
+    console.log("catch");
     console.error(err);
     res.status(500).json({ err: "Something went wrong" });
   }

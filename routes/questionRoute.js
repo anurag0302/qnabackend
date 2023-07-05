@@ -68,27 +68,6 @@ router.post("/questions", upload, async (req, res) => {
   try {
     let imageLocation = [];
     let id = uuidv4();
-    if (req.files) {
-      // uploadImage(req.file, id);
-      //is the id need to be unique for images?
-      req.files.map((file) => {
-        uploadImage(file, id);
-      });
-    }
-    // console.log(imageLocation);
-    // const params = {
-    //   TableName: "QuestionAnswer",
-    //   Key: {
-    //     questionId: id,
-    //   },
-    //   UpdateExpression: "set imageLocation = :r",
-    //   ExpressionAttributeValues: {
-    //     ":r": imageLocation,
-    //   },
-    // };
-    // await dynamoClient.update(params).promise();
-
-
     const qa = question.toLowerCase() + " " + answer.toLowerCase();
     const qnavalue = {
       question: question,
@@ -104,7 +83,38 @@ router.post("/questions", upload, async (req, res) => {
     };
     //console.log("addimageloc",qnavalue);
     const newQuestion = addOrUpdateQuestion(qnavalue);
-    res.json(newQuestion);
+
+    if (req.files) {
+      const uploadPromises = Promise.all(
+        req.files.map(async (file) => {
+          try {
+            const fileres = await uploadImage(file, id);
+            console.log(fileres, "done");
+          } catch (error) {
+            // Handle error if any
+            console.log("Error:", error);
+          }
+        })
+      );
+
+      await uploadPromises; // Wait for all upload promises to settle
+      res.json(newQuestion);
+    }
+
+    // console.log(imageLocation);
+    // const params = {
+    //   TableName: "QuestionAnswer",
+    //   Key: {
+    //     questionId: id,
+    //   },
+    //   UpdateExpression: "set imageLocation = :r",
+    //   ExpressionAttributeValues: {
+    //     ":r": imageLocation,
+    //   },
+    // };
+    // await dynamoClient.update(params).promise();
+
+    console.log("running");
   } catch (err) {
     console.error(err);
     res.status(500).json({ err: "Something went wrong" });
@@ -119,20 +129,27 @@ router.put("/questions/:id", upload, async (req, res) => {
   // if (req.file) {
   //   uploadImage(req.file, id);
   // }
-
-  if (req.files) {
-    // uploadImage(req.file, id);
-    //is the id need to be unique for images?
-    req.files.map((file) => {
-      uploadImage(file, id);
-    });
-  }
-
   question.id = id;
   try {
-    //console.log("imagelocation",question.imgLocation);
+    console.log("imagelocation", question.imgLocation);
     const newQuestion = await updateQuestion(question, imageLocation);
-    res.json(newQuestion);
+
+    if (req.files) {
+      const uploadPromises = Promise.all(
+        req.files.map(async (file) => {
+          try {
+            const fileres = await uploadImage(file, id);
+            console.log(fileres, "done");
+          } catch (error) {
+            // Handle error if any
+            console.log("Error:", error);
+          }
+        })
+      );
+
+      await uploadPromises; // Wait for all upload promises to settle
+      res.json(newQuestion);
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ err: "Something went wrong" });

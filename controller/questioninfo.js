@@ -40,7 +40,7 @@ const addOrUpdateQuestion = async (question) => {
 const updateQuestion = async (question, imageLocation) => {
   // console.log("question",question);
   // console.log("imageLoc",imageLocation);
-  console.log("last imageloc", question.secondary[0].imgdata);
+  //console.log("last imageloc", question.secondary[0].imgdata);
   const params = {
     TableName: TABLE_NAME,
     Key: {
@@ -55,7 +55,7 @@ const updateQuestion = async (question, imageLocation) => {
         question.question.toLowerCase() + " " + question.answer.toLowerCase(),
       ":dt": question.dateLog,
       ":sc": question.secondary,
-      ":imgl": [...imageLocation,...question.secondary[0].imgdata],
+      ":imgl": [...imageLocation, ...question.imgLocation],
       ":cb": question.createdBy,
       ":ar": question.authorRole,
     },
@@ -73,46 +73,48 @@ const deleteQuestion = async (id) => {
   return await dynamoClient.delete(params).promise();
 };
 
-const uploadImage = async (file, id) => {
-  const params = {
-    Bucket: process.env.AWS_BUCKET_NAME, // bucket that we made earlier
-    Key: id + file.originalname, // Name of the image
-    Body: file.buffer, // Body which will contain the image in buffer format
-    ACL: "public-read-write", // defining the permissions to get the public link
-    ContentType: "image/jpeg",
-  };
+const uploadImage = (file, id) => {
+  return new Promise((resolve, reject) => {
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: id + file.originalname,
+      Body: file.buffer,
+      ACL: "public-read-write",
+      ContentType: file.type,
+    };
 
-  s3.upload(params, async (error, data) => {
-    if (error) {
-      console.log(error);
-      res.status(500).send({ err: error });
-    } else {
-      // console.log(data.Location);
-      // imagesArray.push(data.Location);
-      // console.log(imagesArray);
+    s3.upload(params, async (error, data) => {
+      if (error) {
+        console.log(error);
+        reject(error);
+      } else {
+        const params = {
+          TableName: "QuestionAnswer",
+          Key: {
+            questionId: id,
+          },
+          UpdateExpression:
+            "SET #listAttr = list_append(#listAttr, :newString)",
+          ExpressionAttributeNames: {
+            "#listAttr": "imageLocation",
+          },
+          ExpressionAttributeValues: {
+            ":newString": [data.Location],
+          },
+        };
 
-      const params = {
-        TableName: "QuestionAnswer",
-        Key: {
-          questionId: id,
-        },
-        UpdateExpression: "SET #listAttr = list_append(#listAttr, :newString)",
-        ExpressionAttributeNames: {
-          "#listAttr": "imageLocation",
-        },
-        ExpressionAttributeValues: {
-          ":newString": [data.Location],
-        },
-      };
-
-      dynamoClient.update(params, function (err, data) {
-        if (err) {
-          console.log("Error:", err);
-        } else {
-          console.log("Item updated successfully:", data);
-        }
-      });
-    }
+        dynamoClient.update(params, function (err, data) {
+          if (err) {
+            console.log("thissssss");
+            // console.log("Error:", err);
+            reject(err);
+          } else {
+            console.log("Item updated successfully:", data);
+            resolve(data);
+          }
+        });
+      }
+    });
   });
 };
 

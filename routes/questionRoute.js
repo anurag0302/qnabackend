@@ -159,7 +159,9 @@ router.put("/questions/:id", upload, async (req, res) => {
 router.delete("/questions/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    res.json(await deleteQuestion(id));
+    await deleteQuestion(id); // Wait for deletion to complete
+    console.log("working");
+    res.json({ message: "Question deleted successfully" }); // Send response to frontend
   } catch (err) {
     console.error(err);
     res.status(500).json({ err: "Something went wrong" });

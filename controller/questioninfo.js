@@ -70,6 +70,7 @@ const deleteQuestion = async (id) => {
       questionId: id,
     },
   };
+  console.log("first");
   return await dynamoClient.delete(params).promise();
 };
 

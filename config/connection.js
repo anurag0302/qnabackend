@@ -8,6 +8,7 @@ var docClient = new AWS.DynamoDB();
 const s3 = new AWS.S3({
   accessKeyId: process.env.ACCESS_KEY_ID, // accessKeyId that is stored in .env file
   secretAccessKey: process.env.ACCESS_SECRET_KEY, // secretAccessKey is also store in .env file
+  region: process.env.AWS_REGION,
 });
 
 module.exports = {

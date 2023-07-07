@@ -12,6 +12,7 @@ const {
   getSearchResult,
   updateQuestion,
   uploadImage,
+  deleteS3Object,
 } = require("../controller/questioninfo");
 const { upload } = require("../utils/imageStorage");
 
@@ -67,6 +68,7 @@ router.post("/questions", upload, async (req, res) => {
 
   try {
     let imageLocation = [];
+    let s3Keys = [];
     let id = uuidv4();
     const qa = question.toLowerCase() + " " + answer.toLowerCase();
     const qnavalue = {
@@ -80,6 +82,7 @@ router.post("/questions", upload, async (req, res) => {
       dateLog: dateLog,
       secondary: secondary,
       imageLocation: imageLocation,
+      s3Keys: s3Keys,
     };
     //console.log("addimageloc",qnavalue);
     const newQuestion = addOrUpdateQuestion(qnavalue);
@@ -158,7 +161,14 @@ router.put("/questions/:id", upload, async (req, res) => {
 
 router.delete("/questions/:id", async (req, res) => {
   const { id } = req.params;
+  //const s3Keys = JSON.parse(req.body.keys);
+  console.log(req.body.s3keys);
+  const { s3keys } = req.body;
+
   try {
+    s3keys.map(async (key) => {
+      await deleteS3Object(key);
+    });
     await deleteQuestion(id); // Wait for deletion to complete
     console.log("working");
     res.json({ message: "Question deleted successfully" }); // Send response to frontend
@@ -166,6 +176,13 @@ router.delete("/questions/:id", async (req, res) => {
     console.error(err);
     res.status(500).json({ err: "Something went wrong" });
   }
+});
+
+router.delete("/s3keys/:key", async (req, res) => {
+  const { key } = req.params;
+  try {
+    console.log(key);
+  } catch (err) {}
 });
 
 module.exports = router;

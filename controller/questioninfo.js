@@ -1,4 +1,6 @@
 const { dynamoClient, docClient, s3 } = require("../config/connection");
+const { v4: uuidv4 } = require("uuid");
+
 const TABLE_NAME = "QuestionAnswer";
 const getQuestions = async () => {
   const params = {
@@ -74,13 +76,29 @@ const deleteQuestion = async (id) => {
   return await dynamoClient.delete(params).promise();
 };
 
+const deleteS3Object = async (objectKey) => {
+  try {
+    var params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: objectKey,
+    };
+    s3.deleteObject(params, function (err, data) {
+      if (err) console.log(err, err.stack); // an error occurred
+      else console.log(data); // successful response
+    });
+  } catch (error) {
+    console.error("Error deleting object:", error);
+  }
+};
+
 const uploadImage = (file, id) => {
+  const uniqueId = uuidv4();
+
   return new Promise((resolve, reject) => {
     const params = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: id + file.originalname,
+      Key: uniqueId + file.originalname,
       Body: file.buffer,
-      ACL: "public-read-write",
       ContentType: file.type,
     };
 
@@ -95,12 +113,14 @@ const uploadImage = (file, id) => {
             questionId: id,
           },
           UpdateExpression:
-            "SET #listAttr = list_append(#listAttr, :newString)",
+            "SET #listAttr = list_append(#listAttr, :newString), #anotherAttr = list_append(#anotherAttr, :newData)",
           ExpressionAttributeNames: {
             "#listAttr": "imageLocation",
+            "#anotherAttr": "s3Keys",
           },
           ExpressionAttributeValues: {
             ":newString": [data.Location],
+            ":newData": [uniqueId + file.originalname],
           },
         };
 
@@ -128,4 +148,5 @@ module.exports = {
   getSearchResult,
   deleteQuestion,
   updateQuestion,
+  deleteS3Object,
 };
